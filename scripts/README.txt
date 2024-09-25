@@ -14,5 +14,5 @@ Instructions for reproducing experiments of paper:
     * For fully-dynamic streams, Tonic read rows as (u v t sign), while ThinkD and WRSDel read rows as (u v sign). You need to change the code to read the correct format. The sign is also interpreted differently (as char).
 
 4 - after having set up all the environments correctly, you can run the experiments by inside the "experiments" folder.
-    The script "run_experiments.sh" will run all the experiments for the paper. You can also run the experiments individually by running the scripts inside the "experiments" folder.
+    You might run each experiment individually by running the scripts inside the "experiments" folder. We provided bash sources for running experiments for ranges of parameters (Fig. 1 of the paper), for ranges of memory budget allowed (Fig. 2 of the paper), and for snapshot sequences of input graph streams (Fig. 4 of the paper).
     NOTE: if you want to save results for several trials, you need to change the code for WRS and ThinkD allowing to append results to the output file.
