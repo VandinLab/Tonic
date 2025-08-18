@@ -1,11 +1,16 @@
-# Fast and Accurate Triangle Counting in Graph Streams Using Predictions (ICDM 2024)
+# Fast and Accurate Triangle Counting in Graph Streams Using Predictions
 
-Cristian Boldrin and Fabio Vandin, "Fast and Accurate Triangle Counting in Graph Streams Using Predictions", appeared at ICDM 2024.
+Cristian Boldrin, Nikola Bulat and Fabio Vandin, "Fast and Accurate Triangle Counting in Graph Streams Using Predictions", under review for Knowledge and Information Systems (KAIS) journal.
 
-<a href="https://arxiv.org/pdf/2409.15205">Link</a> for Arxiv Extended Version of the paper
+The manuscript submitted to KAIS is an extended version of our previous work:
+
+* C. Boldrin and F. Vandin, "Fast and Accurate Triangle Counting in Graph Streams Using Predictions," 2024 IEEE International Conference on Data Mining (ICDM), Abu Dhabi, United Arab Emirates, 2024, pp. 31-40, doi: 10.1109/ICDM59182.2024.00010 <a href="https://ieeexplore.ieee.org/document/10884156">(link)</a>.
+
+The material relative to the above publication can be found inside `ICDM-2024/` folder. All the other material in the current root folder is to be indended for KAIS journal submission. 
 
 ---
 
+## Installation and Usage
 Here are the instructions for running *Tonic* algorithm: **T**iangles c**O**unti**N**g with pred**IC**tions, for both
 insertion-only and fully-dynamic graph streams. 
 Code is deployed in *C++ 17* under *gcc 9.4.0* compiler. Additionally, *CMake 3.16+* is required.
