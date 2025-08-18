@@ -1,0 +1,26 @@
+# Number of independent trials to run per snapshot
+n_trials: 50
+
+# List of dataset folders, each containing preprocessed snapshot files
+dataset_folders:
+  - /path/to/datasets/as_733               
+  - /path/to/datasets/as_caida             
+  - /path/to/datasets/oregon
+
+# Paths to OracleExact predictor files (from the first snapshot of each dataset)
+oracle_exact_paths:
+  - /path/to/oracles/as_733/first_snapshot_exact_predictor.txt
+  - /path/to/oracles/as_caida/first_snapshot_exact_predictor.txt
+  - /path/to/oracles/oregon/first_snapshot_exact_predictor.txt
+
+# Paths to MinDegreePredictor files (from the first snapshot of each dataset)
+oracle_min_degree_paths:
+  - /path/to/oracles/as_733/first_snapshot_min_degree_predictor.txt
+  - /path/to/oracles/as_caida/first_snapshot_min_degree_predictor.txt
+  - /path/to/oracles/oregon/first_snapshot_min_degree_predictor.txt
+
+# Output names used to label the results for each configuration
+names:
+  - original_predictors_as_733
+  - original_predictors_as_caida
+  - original_predictors_oregon

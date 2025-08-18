@@ -1,0 +1,14 @@
+# Name of the script to run (exec_first_snapshot_mdp_similarity_experiments.py or exec_previous_snapshot_mdp_similarity_experiments.py)
+script_name: "exec_previous_snapshot_mdp_similarity_experiments.py"
+
+# List of folders containing the MinDegreePredictor oracle files for each snapshot
+oracle_min_degree_folders:
+  - /path/to/oracles/as_733/min_degree_predictor_folder        
+  - /path/to/oracles/as_caida/min_degree_predictor_folder
+  - /path/to/oracles/oregon/min_degree_predictor_folder
+
+# Output base names used to label the results per dataset
+base_names:
+  - previous_snapshot_as_733
+  - previous_snapshot_as_caida
+  - previous_snapshot_as_oregon

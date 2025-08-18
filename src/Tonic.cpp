@@ -3,6 +3,7 @@
 //
 
 #include "Tonic.h"
+#include <fstream>
 
 /**
  * Constructor for Tonic - insertion only algorithm
@@ -12,7 +13,7 @@
  * @param beta
  */
 Tonic::Tonic(int random_seed, long k, double alpha, double beta) : t_(0), k_(k), alpha_(alpha),
-                                                                   beta_(beta)  {
+                                                                   beta_(beta), random_seed_(random_seed)  {
 
     printf("Starting Tonic Algo - alpha %.3f, beta = %.3f | Memory Budget = %ld\n", alpha, beta, k);
     WR_size_ = (long) (k_ * alpha);
@@ -183,12 +184,21 @@ double Tonic::get_local_triangles(const int u) const {
 }
 
 /**
+ *  Function that instantiates the internal USS heap (`ss_heap_`) using the configured
+ * `update_map_capacity` and `random_seed_`. It is called automatically if the USS flag is enabled.
+ */
+void Tonic::setup_space_saving() {
+    ss_heap_ = UnbiasedSpaceSaving(update_map_capacity, random_seed_);
+}
+
+/**
  * Function that counts the triangles closed by the current edge (src, dst). The function is called before the edge is
  * sampled.
  * @param src
  * @param dst
  */
 void Tonic::count_triangles(const int src, const int dst) {
+   
     emhash5::HashMap<int, bool> *u_neighs, *v_neighs;
     auto u_it = subgraph_.find(src);
     if (u_it == subgraph_.end()) {
@@ -355,13 +365,25 @@ bool Tonic::sample_edge(const int src, const int dst) {
     }
 }
 
+const std::vector<UnbiasedSpaceSaving::HeapNode>& Tonic::get_top_nodes(int n) {
+    if (!ss_heap_) {
+        throw std::runtime_error("USS not initialized — cannot get top nodes.");
+    }
+    return ss_heap_->top_n(n);
+}
+
 /**
- * Function that processes an edge (src, dst). First performs the count of triangles, then samples the edge accordingly.
- * deletions
- * @param src
- * @param dst
+ * Function that processes an edge (src, dst). It performs the count of triangles, and then samples the edge accordingly.
+ * If USS is enabled, it also updates the node degree estimates.
+ * @param u
+ * @param v
  */
 void Tonic::process_edge(const int u, const int v) {
+
+     if (ss_heap_) {
+        ss_heap_->update(u);
+        ss_heap_->update(v);
+    }
 
     count_triangles(u, v);
     bool is_det = sample_edge(u, v);

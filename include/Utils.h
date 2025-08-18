@@ -9,7 +9,7 @@
 #include <unordered_set>
 #include <filesystem>
 #include <random>
-
+#include "Unbiased_Space_Saving.h"
 
 class Utils {
 
@@ -65,6 +65,9 @@ public:
     static void build_node_oracle(std::string &filepath, double percentage_retain,
                                         std::string &output_path);
 
+    static void write_top_nodes(const std::string& output_path, const std::vector<UnbiasedSpaceSaving::HeapNode>& top_nodes);
+
+    static void write_map_capacity(const std::string& output_path, int map_capacity, int next_oracle_size);
 };
 
 

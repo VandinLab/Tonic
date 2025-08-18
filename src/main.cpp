@@ -6,6 +6,7 @@
 #include <fstream>
 #include <string>
 #include <chrono>
+#include <filesystem>
 
 /**
  * Read stream and perform the Tonic algorithm for insertion only streams
@@ -93,6 +94,44 @@ void run_tonic_algo_FD(std::string &dataset_path, Tonic_FD &algo) {
 }
 
 /**
+ * Read stream and perform the USS algorithm for graph snapshots
+ * @param dataset_path
+ * @param uss Reference to an instantiated UnbiasedSpaceSaving object
+ */
+void run_uss_algo(std::string &dataset_path, UnbiasedSpaceSaving &uss) {
+
+    std::ifstream file(dataset_path);
+    std::string line;
+    long n_line = 0;
+    int u, v, t;
+
+    if (file.is_open()) {
+        while (true) {
+            if (!std::getline(file, line)) break;
+            std::istringstream iss(line);
+            std::string token;
+
+            std::getline(iss, token, ' ');
+            u = std::stoi(token);
+            std::getline(iss, token, ' ');
+            v = std::stoi(token);
+            std::getline(iss, token, ' ');
+            t = std::stoi(token);  // still read it for consistency
+
+            uss.update(u);
+            uss.update(v);
+
+            if (++n_line % 5000000 == 0) {
+                printf("Processed %ld edges.\n", n_line);
+            }
+        }
+        file.close();
+    } else {
+        std::cerr << "Error! Unable to open file " << dataset_path << "\n";
+    }
+}
+
+/**
  * Write results to a csv file
  * @param name of the algorithm
  * @param estimated_T estimates of global triangles
@@ -109,12 +148,25 @@ void write_results(std::string name, double estimated_T, double time, std::strin
                     double alpha, double beta, long memory_budget, int size_oracle,
                     double time_oracle) {
     printf("%s Algo successfully run in time %.3f! Estimated count T = %f\n", name.c_str(), time, estimated_T);
-    // -- write results
-    // -- global estimates
-    std::ofstream out_file(output_path + "_global_count.csv", std::ios::app);
+
+    std::string csv_path = output_path + "_global_count.csv";
+
+    // Check if the file exists and is empty (write header only once)
+    bool write_header = !std::filesystem::exists(csv_path) || std::filesystem::file_size(csv_path) == 0;
+
+    std::ofstream out_file(csv_path, std::ios::app);
+    
+    if (!out_file.is_open()) {
+        std::cerr << "Error! Could not open file " << csv_path << " for writing.\n";
+        return;
+    }
+
     std::string oracle_type_str = edge_oracle_flag ? "Edges" : "Nodes";
 
-    out_file << "Algo,Params,Oracle,SizeOracle,TimeOracle,MemEdges,GlobalTriangleCount,Time\n";
+    if (write_header) {
+        out_file << "Algo,Params,Oracle,SizeOracle,TimeOracle,MemEdges,GlobalTriangleCount,Time\n";
+    }
+
     out_file << name.c_str() << ",Alpha=" << alpha << "-Beta=" << beta << "," << oracle_type_str << "," << size_oracle
              << "," << time_oracle << "," << memory_budget << "," << std::fixed << estimated_T << "," << time << "\n";
 
@@ -256,16 +308,41 @@ int main(int argc, char **argv) {
         }
     }
 
-    // -- Tonic Algo
-    if (strcmp(project, "Tonic") == 0) {
-        if (argc != 10) {
-            std::cerr << "Usage: Tonic <flag: 0: insertion-only stream, 1: fully-dynamic stream>"
-                         " <random_seed> <memory_budget> <alpha> <beta> "
-                         "<dataset_path> <oracle_path> <oracle_type = [nodes, edges]> <output_path>\n";
+    // -- USS Algo
+    if (strcmp(project, "RunUSS") == 0) {
+        if (argc != 6) {
+            std::cerr << "Usage: RunUSS <dataset_path> <output_path_prefix> <k> <seed> <n_bar>\n";
             return 1;
         }
 
-        // -- read arguments
+        std::string dataset_path(argv[1]);
+        std::string output_path(argv[2]);
+        int k = std::stoi(argv[3]);
+        int seed = std::stoi(argv[4]);
+        int n_bar = std::stoi(argv[5]);
+
+        UnbiasedSpaceSaving uss(k, seed);
+        run_uss_algo(dataset_path, uss);
+
+        const auto& top_nodes = uss.top_n(n_bar);
+        Utils::write_top_nodes(output_path, top_nodes);
+
+        std::cout << "USS run completed. Output written to " << output_path << "_top_nodes.csv\n";
+        return 0;
+    }
+
+    // -- Tonic Algo
+    if (strcmp(project, "Tonic") == 0) {
+        
+        if (argc != 10 and argc!= 13) {
+            std::cerr << "Usage: Tonic <flag: 0: insertion-only stream, 1: fully-dynamic stream>"
+                     " <random_seed> <memory_budget> <alpha> <beta> "
+                     "<dataset_path> <oracle_path> <oracle_type = [nodes, edges]> <output_path>"
+                     " <use_uss: 0|1> <update_map_capacity> <next_oracle_size>\n";
+            return 1;
+        }
+        
+        // -- read core arguments
         int flag_fd = atoi(argv[1]);
         assert(flag_fd == 0 or flag_fd == 1);
         int random_seed = atoi(argv[2]);
@@ -282,6 +359,30 @@ int main(int argc, char **argv) {
         std::string oracle_path(argv[7]);
         std::string oracle_type(argv[8]);
         std::string output_path(argv[9]);
+        
+        // -- optional USS arguments
+        int uss_flag = 0;
+        int update_map_capacity = 0; 
+        int next_oracle_size = 0;
+
+        if(argc == 13){
+            uss_flag = atoi(argv[10]);
+            assert(uss_flag == 0 or uss_flag == 1);
+
+            update_map_capacity = atoi(argv[11]);
+            next_oracle_size = atoi(argv[12]);
+
+            if (uss_flag == 0) {
+                std::cerr << "Error! use_uss must be 1 if USS arguments are provided.\n";
+                return 1;
+            }
+        }
+
+        // -- validate USS applicability
+        if (uss_flag == 1 and (flag_fd == 1 or oracle_type == "edges")) {
+            std::cerr << "Error! USS is only supported for insertion-only streams with a node oracle.\n";
+            return 1;
+        }
 
         std::chrono::time_point start = std::chrono::high_resolution_clock::now();
         double time, time_oracle;
@@ -326,19 +427,39 @@ int main(int argc, char **argv) {
 
         } else {
             Tonic tonic_algo(random_seed, memory_budget, alpha, beta);
+            
+            if(uss_flag == 1){
+                tonic_algo.update_map_capacity = update_map_capacity;
+                tonic_algo.setup_space_saving();
+            }
+
             if (edge_oracle_flag)
                 tonic_algo.set_edge_oracle(edge_oracle);
             else
                 tonic_algo.set_node_oracle(node_oracle);
 
+            const std::vector<UnbiasedSpaceSaving::HeapNode>* top_nodes = nullptr;
+
             start = std::chrono::high_resolution_clock::now();
+
             run_tonic_algo(dataset_path, tonic_algo);
+            
+            // put the sorting and slicing within the measured time (USS)
+            if(uss_flag == 1){
+                top_nodes = &tonic_algo.get_top_nodes(next_oracle_size);
+            }
+
             time = (double) ((std::chrono::duration_cast<std::chrono::milliseconds>(
                     std::chrono::high_resolution_clock::now() - start)).count()) / 1000;
 
             write_results(std::string("TonicINS"), tonic_algo.get_global_triangles(), time,
                           output_path, edge_oracle_flag, alpha, beta, memory_budget, size_oracle, time_oracle);
-
+            
+            // put the writing outside of measured time (USS)
+            if(uss_flag == 1){
+                Utils::write_top_nodes(output_path, *top_nodes);
+                Utils::write_map_capacity(output_path, update_map_capacity, next_oracle_size);
+            }
         }
         std::cout << "Done!\n";
         return 0;

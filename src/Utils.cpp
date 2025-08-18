@@ -3,6 +3,8 @@
 //
 
 #include "../include/Utils.h"
+#include <fstream>
+#include <filesystem>
 
 /**
  * Runs the exact algorithm for counting triangles in a insertion-only, undirected and static graph streams
@@ -891,3 +893,46 @@ void Utils::build_node_oracle(std::string &filepath, double percentage_retain, s
     }
 }
 
+/**
+ * Function that wries the top nodes and their frequency estimates to a CSV file.
+ *
+ * @param output_path path prefix for the output file
+ * @param top_nodes vector of nodes and their frequencies
+ */
+void Utils::write_top_nodes(const std::string& output_path, const std::vector<UnbiasedSpaceSaving::HeapNode>& top_nodes) {
+    std::ofstream out_file(output_path + "_top_nodes.csv");
+    out_file << "Node,Degree\n";
+
+    for (const auto& entry : top_nodes) {
+        out_file << entry.node << "," << entry.freq << "\n";
+    }
+
+    out_file.close();
+}
+
+/**
+ * Function that appends the USS map capacity and the next oracle size to a CSV file.
+ *
+ * If the file does not exist or is empty, the header is written first.
+ *
+ * @param output_path path prefix for the output file
+ * @param map_capacity capacity used for the USS heap
+ * @param next_oracle_size number of nodes in the next oracle
+ */
+void Utils::write_map_capacity(const std::string& output_path, int map_capacity, int next_oracle_size) {
+    std::string file_path = output_path + "_uss_map_capacity.csv";
+    bool write_header = !std::filesystem::exists(file_path) || std::filesystem::file_size(file_path) == 0;
+
+    std::ofstream out_file(file_path, std::ios::app);
+    if (!out_file.is_open()) {
+        std::cerr << "Error! Could not open file " << file_path << " for writing.\n";
+        return;
+    }
+
+    if (write_header) {
+        out_file << "UpdateMapCapacity,NextOracleSize\n";
+    }
+
+    out_file << map_capacity << "," << next_oracle_size << "\n";
+    out_file.close();
+}

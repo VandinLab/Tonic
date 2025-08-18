@@ -13,6 +13,7 @@ Instructions for reproducing experiments of paper:
     * ThinkD (BatchAcc.java, line 47), which uses tab as default delimiter, while we preprocess the datasets using space as delimiter.
     * For fully-dynamic streams, Tonic read rows as (u v t sign), while ThinkD and WRSDel read rows as (u v sign). You need to change the code to read the correct format. The sign is also interpreted differently (as char).
 
-4 - after having set up all the environments correctly, you can run the experiments by inside the "experiments" folder.
+4 - after having set up all the environments correctly, you can run the experiments inside the "experiments" folder.
     You might run each experiment individually by running the scripts inside the "experiments" folder. We provided bash sources for running experiments for ranges of parameters (Fig. 1 of the paper), for ranges of memory budget allowed (Fig. 2 of the paper), and for snapshot sequences of input graph streams (Fig. 4 of the paper).
+    Moreover, we provide the scripts to reproduce all the results for Tonic combined with Unbiased Space Saving (USS) to update the MinDegreePredictor for sequences of graph streams. Detailed instructions for running these experiments are provided inside the "experiments/tonic_with_mdp_updated" folder.
     NOTE: if you want to save results for several trials, you need to change the code for WRS and ThinkD allowing to append results to the output file.
