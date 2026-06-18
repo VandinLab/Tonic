@@ -1,6 +1,6 @@
 # Fast and Accurate Triangle Counting in Graph Streams Using Predictions
 
-Cristian Boldrin, Nikola Bulat and Fabio Vandin, "Fast and Accurate Triangle Counting in Graph Streams Using Predictions", under review for Knowledge and Information Systems (KAIS) journal.
+Cristian Boldrin, Nikola Bulat and Fabio Vandin, "Fast and Accurate Triangle Counting in Graph Streams Using Predictions", Knowledge and Information Systems (KAIS) journal.
 
 The manuscript submitted to KAIS is an extended version of our previous work:
 
