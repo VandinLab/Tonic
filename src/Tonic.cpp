@@ -350,7 +350,7 @@ bool Tonic::sample_edge(const int src, const int dst) {
                 subgraph_[uv_sample.first][uv_sample.second] = false;
                 subgraph_[uv_sample.second][uv_sample.first] = false;
                 // -- evict edge uniformly at random
-                int replace_idx = (int) (rand() % SL_size_);
+                int replace_idx = dis_int_(gen_);
                 Edge uv_replace = light_edges_sample_[replace_idx];
                 remove_edge(uv_replace.first, uv_replace.second);
                 light_edges_sample_[replace_idx] = uv_sample;
